@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ menu_item.name }} - Nhà hàng{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'restaurant:home' %}">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'restaurant:menu_list' %}">Thực đơn</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'restaurant:category_detail' menu_item.category.slug %}">{{ menu_item.category.name }}</a></li>
+            <li class="breadcrumb-item active">{{ menu_item.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Product Images -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm">
+                {% if menu_item.image %}
+                    <img src="{{ menu_item.image.url }}" class="card-img-top" alt="{{ menu_item.name }}" style="height: 500px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 500px;">
+                        <i class="fas fa-utensils fa-5x"></i>
+                    </div>
+                {% endif %}
+                
+                {% if menu_item.discount_percentage %}
+                    <div class="position-absolute top-0 end-0 m-3">
+                        <span class="badge bg-danger fs-5">-{{ menu_item.discount_percentage }}%</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Thumbnail Gallery -->
+            {% if menu_item.images.all %}
+                <div class="d-flex gap-2 mt-3">
+                    {% for image in menu_item.images.all %}
+                        <img src="{{ image.image.url }}" class="img-thumbnail" style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;" alt="{{ image.caption }}">
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Product Info -->
+        <div class="col-lg-6">
+            <div class="mb-3">
+                <h1 class="display-5 fw-bold">{{ menu_item.name }}</h1>
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="badge bg-primary">{{ menu_item.category.name }}</span>
+                    {% if menu_item.is_vegetarian %}
+                        <span class="badge bg-success"><i class="fas fa-leaf"></i> Món chay</span>
+                    {% endif %}
+                    {% if menu_item.is_spicy %}
+                        <span class="badge bg-danger"><i class="fas fa-pepper-hot"></i> Cay</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Rating -->
+            {% if avg_rating %}
+                <div class="mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="text-warning me-2">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= avg_rating %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <span class="fw-bold">{{ avg_rating|floatformat:1 }}</span>
+                        <span class="text-muted ms-2">({{ review_count }} đánh giá)</span>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Price -->
+            <div class="mb-4">
+                {% if menu_item.discount_price %}
+                    <div class="text-muted text-decoration-line-through fs-5">
+                        {{ menu_item.price|floatformat:0 }}đ
+                    </div>
+                    <div class="text-danger fw-bold" style="font-size: 2rem;">
+                        {{ menu_item.discount_price|floatformat:0 }}đ
+                    </div>
+                {% else %}
+                    <div class="text-primary fw-bold" style="font-size: 2rem;">
+                        {{ menu_item.price|floatformat:0 }}đ
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Description -->
+            <div class="mb-4">
+                <h5 class="fw-bold mb-3">Mô tả</h5>
+                <p class="text-muted">{{ menu_item.description }}</p>
+            </div>
+
+            <!-- Additional Info -->
+            <div class="row g-3 mb-4">
+                <div class="col-6">
+                    <div class="border rounded p-3 text-center">
+                        <i class="fas fa-clock text-primary fa-2x mb-2"></i>
+                        <div class="small text-muted">Thời gian chuẩn bị</div>
+                        <div class="fw-bold">{{ menu_item.preparation_time }} phút</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="border rounded p-3 text-center">
+                        <i class="fas fa-eye text-primary fa-2x mb-2"></i>
+                        <div class="small text-muted">Lượt xem</div>
+                        <div class="fw-bold">{{ menu_item.views_count }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add to Cart Form -->
+            {% if menu_item.is_available %}
+                <form method="post" action="{% url 'restaurant:cart_add' menu_item.id %}" class="mb-4">
+                    {% csrf_token %}
+                    <div class="row g-2 align-items-center">
+                        <div class="col-auto">
+                            <label class="form-label mb-0">Số lượng:</label>
+                        </div>
+                        <div class="col-auto">
+                            {{ cart_form.quantity }}
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-shopping-cart"></i> Thêm vào giỏ hàng
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            {% else %}
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Món này tạm thời hết hàng
+                </div>
+            {% endif %}
+
+            <!-- Share Buttons -->
+            <div class="border-top pt-3">
+                <div class="small text-muted mb-2">Chia sẻ:</div>
+                <div class="d-flex gap-2">
+                    <a href="#" class="btn btn-outline-primary btn-sm">
+                        <i class="fab fa-facebook-f"></i> Facebook
+                    </a>
+                    <a href="#" class="btn btn-outline-info btn-sm">
+                        <i class="fab fa-twitter"></i> Twitter
+                    </a>
+                    <a href="#" class="btn btn-outline-success btn-sm">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs: Details, Ingredients, Reviews -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="productTab" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button">
+                        <i class="fas fa-info-circle"></i> Chi tiết
+                    </button>
+                </li>
+                {% if menu_item.ingredients %}
+                    <li class="nav-item">
+                        <button class="nav-link" id="ingredients-tab" data-bs-toggle="tab" data-bs-target="#ingredients" type="button">
+                            <i class="fas fa-list"></i> Nguyên liệu
+                        </button>
+                    </li>
+                {% endif %}
+                <li class="nav-item">
+                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button">
+                        <i class="fas fa-star"></i> Đánh giá ({{ review_count }})
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content p-4 border border-top-0" id="productTabContent">
+                <!-- Details Tab -->
+                <div class="tab-pane fade show active" id="details">
+                    <h5 class="mb-3">Thông tin chi tiết</h5>
+                    <p>{{ menu_item.description }}</p>
+                    {% if menu_item.recipe %}
+                        <h6 class="mt-4">Công thức:</h6>
+                        <p class="text-muted">{{ menu_item.recipe|linebreaks }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Ingredients Tab -->
+                {% if menu_item.ingredients %}
+                    <div class="tab-pane fade" id="ingredients">
+                        <h5 class="mb-3">Nguyên liệu</h5>
+                        <p class="text-muted">{{ menu_item.ingredients|linebreaks }}</p>
+                    </div>
+                {% endif %}
+
+                <!-- Reviews Tab -->
+                <div class="tab-pane fade" id="reviews">
+                    <h5 class="mb-4">Đánh giá từ khách hàng</h5>
+
+                    <!-- Write Review -->
+                    {% if user.is_authenticated and review_form %}
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    {% if user_review %}
+                                        Chỉnh sửa đánh giá của bạn
+                                    {% else %}
+                                        Viết đánh giá
+                                    {% endif %}
+                                </h6>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label class="form-label">Đánh giá</label>
+                                        {{ review_form.rating }}
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Nhận xét</label>
+                                        {{ review_form.comment }}
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane"></i> Gửi đánh giá
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% elif not user.is_authenticated %}
+                        <div class="alert alert-info">
+                            <a href="{% url 'accounts:login' %}">Đăng nhập</a> để viết đánh giá
+                        </div>
+                    {% endif %}
+
+                    <!-- Reviews List -->
+                    {% if reviews %}
+                        {% for review in reviews %}
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <strong>{{ review.user.get_full_name|default:review.user.username }}</strong>
+                                            <div class="text-warning small">
+                                                {% for i in "12345" %}
+                                                    {% if forloop.counter <= review.rating %}
+                                                        <i class="fas fa-star"></i>
+                                                    {% else %}
+                                                        <i class="far fa-star"></i>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        <small class="text-muted">{{ review.created_at|date:"d/m/Y" }}</small>
+                                    </div>
+                                    <p class="mb-0">{{ review.comment }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_items %}
+        <div class="mt-5">
+            <h3 class="mb-4">Món ăn liên quan</h3>
+            <div class="row g-4">
+                {% for item in related_items %}
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card h-100 shadow-sm">
+                            <a href="{% url 'restaurant:menu_detail' item.slug %}">
+                                {% if item.image %}
+                                    <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}" style="height: 200px; object-fit: cover;">
+                                {% endif %}
+                            </a>
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <a href="{% url 'restaurant:menu_detail' item.slug %}" class="text-dark text-decoration-none">
+                                        {{ item.name }}
+                                    </a>
+                                </h6>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold text-primary">{{ item.get_price|floatformat:0 }}đ</span>
+                                    <form method="post" action="{% url 'restaurant:cart_add' item.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-cart-plus"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

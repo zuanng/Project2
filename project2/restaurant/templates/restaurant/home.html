@@ -1,20 +1,216 @@
 {% extends 'base.html' %}
 
+{% block title %}Trang chủ - Nhà hàng{% endblock %}
+
 {% block content %}
-<div class="container">
-    <div class="jumbotron text-center py-5">
-        <h1 class="display-4">Chào mừng đến Nhà Hàng</h1>
-        <p class="lead">Hương vị tuyệt vời, phục vụ tận tâm</p>
-        {% if not user.is_authenticated %}
-            <div class="mt-4">
-                <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg me-2">
-                    Đăng ký ngay
-                </a>
-                <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-lg">
-                    Đăng nhập
+<!-- Hero Section -->
+<section class="bg-light py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Chào mừng đến Nhà Hàng</h1>
+                <p class="lead mb-4">
+                    Trải nghiệm hương vị tuyệt vời với những món ăn được chế biến từ 
+                    nguyên liệu tươi ngon nhất, phục vụ bởi đội ngũ đầu bếp tài năng.
+                </p>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'restaurant:menu_list' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-book-open"></i> Xem thực đơn
+                    </a>
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'accounts:register' %}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-user-plus"></i> Đăng ký
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800" 
+                     alt="Restaurant" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Items -->
+{% if featured_items %}
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Món Ăn Nổi Bật</h2>
+            <p class="text-muted">Những món ăn được yêu thích nhất</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for item in featured_items %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm hover-shadow">
+                    {% if item.image %}
+                        <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}" style="height: 250px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 250px;">
+                            <i class="fas fa-utensils fa-4x"></i>
+                        </div>
+                    {% endif %}
+                    
+                    {% if item.discount_percentage %}
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span class="badge bg-danger">-{{ item.discount_percentage }}%</span>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">{{ item.name }}</h5>
+                            <span class="badge bg-primary">{{ item.category.name }}</span>
+                        </div>
+                        
+                        <p class="card-text text-muted small">
+                            {{ item.description|truncatewords:20 }}
+                        </p>
+                        
+                        <div class="d-flex align-items-center mb-2">
+                            {% if item.is_vegetarian %}
+                                <span class="badge bg-success me-1"><i class="fas fa-leaf"></i> Chay</span>
+                            {% endif %}
+                            {% if item.is_spicy %}
+                                <span class="badge bg-danger me-1"><i class="fas fa-pepper-hot"></i> Cay</span>
+                            {% endif %}
+                            <small class="text-muted ms-auto">
+                                <i class="far fa-clock"></i> {{ item.preparation_time }} phút
+                            </small>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div>
+                                {% if item.discount_price %}
+                                    <span class="text-muted text-decoration-line-through small">
+                                        {{ item.price|floatformat:0 }}đ
+                                    </span>
+                                    <span class="fs-5 fw-bold text-danger ms-2">
+                                        {{ item.discount_price|floatformat:0 }}đ
+                                    </span>
+                                {% else %}
+                                    <span class="fs-5 fw-bold text-primary">
+                                        {{ item.price|floatformat:0 }}đ
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <a href="{% url 'restaurant:menu_detail' item.slug %}" class="btn btn-sm btn-primary">
+                                Xem chi tiết
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-5">
+            <a href="{% url 'restaurant:menu_list' %}" class="btn btn-outline-primary btn-lg">
+                Xem tất cả món ăn <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Categories -->
+{% if categories %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Danh Mục Món Ăn</h2>
+            <p class="text-muted">Khám phá các loại món ăn đa dạng</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for category in categories %}
+            <div class="col-md-4 col-lg-2">
+                <a href="{% url 'restaurant:category_detail' category.slug %}" class="text-decoration-none">
+                    <div class="card text-center h-100 shadow-sm hover-shadow">
+                        {% if category.image %}
+                            <img src="{{ category.image.url }}" class="card-img-top" alt="{{ category.name }}" style="height: 150px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-primary text-white d-flex align-items-center justify-content-center" style="height: 150px;">
+                                <i class="fas fa-utensils fa-3x"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h6 class="card-title">{{ category.name }}</h6>
+                        </div>
+                    </div>
                 </a>
             </div>
-        {% endif %}
+            {% endfor %}
+        </div>
     </div>
-</div>
+</section>
+{% endif %}
+
+<!-- Chefs -->
+{% if chefs %}
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Đội Ngũ Đầu Bếp</h2>
+            <p class="text-muted">Những bàn tay tài hoa tạo nên hương vị tuyệt vời</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for chef in chefs %}
+            <div class="col-md-6 col-lg-3">
+                <div class="card text-center h-100 shadow-sm">
+                    {% if chef.image %}
+                        <img src="{{ chef.image.url }}" class="card-img-top" alt="{{ chef.name }}" style="height: 300px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ chef.name }}</h5>
+                        <p class="text-muted small">{{ chef.position }}</p>
+                        {% if chef.specialization %}
+                            <p class="text-primary small mb-2">
+                                <i class="fas fa-award"></i> {{ chef.specialization }}
+                            </p>
+                        {% endif %}
+                        <div class="d-flex justify-content-center gap-2">
+                            {% if chef.facebook %}
+                                <a href="{{ chef.facebook }}" class="btn btn-sm btn-outline-primary rounded-circle" target="_blank">
+                                    <i class="fab fa-facebook-f"></i>
+                                </a>
+                            {% endif %}
+                            {% if chef.instagram %}
+                                <a href="{{ chef.instagram }}" class="btn btn-sm btn-outline-danger rounded-circle" target="_blank">
+                                    <i class="fab fa-instagram"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Call to Action -->
+<section class="py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="display-5 fw-bold mb-4">Sẵn sàng đặt bàn?</h2>
+        <p class="lead mb-4">Trải nghiệm ẩm thực tuyệt vời cùng chúng tôi ngay hôm nay</p>
+        <a href="{% url 'reservations:reservation_create' %}" class="btn btn-light btn-lg">
+            <i class="fas fa-calendar-check"></i> Đặt bàn ngay
+        </a>
+    </div>
+</section>
+
+<style>
+    .hover-shadow {
+        transition: all 0.3s ease;
+    }
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+    }
+</style>
 {% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Đầu bếp - Nhà hàng{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="text-center mb-5">
+        <h2 class="display-5 fw-bold">Đội Ngũ Đầu Bếp</h2>
+        <p class="text-muted">Những bàn tay tài hoa tạo nên hương vị tuyệt vời</p>
+    </div>
+    
+    <div class="row g-4">
+        {% for chef in chefs %}
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-center h-100 shadow-sm">
+                {% if chef.image %}
+                    <img src="{{ chef.image.url }}" class="card-img-top" alt="{{ chef.name }}" style="height: 350px; object-fit: cover;">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ chef.name }}</h5>
+                    <p class="text-primary">{{ chef.position }}</p>
+                    {% if chef.specialization %}
+                        <p class="text-muted small mb-2">
+                            <i class="fas fa-award"></i> {{ chef.specialization }}
+                        </p>
+                    {% endif %}
+                    <p class="card-text small">{{ chef.bio|truncatewords:20 }}</p>
+                    <div class="d-flex justify-content-center gap-2 mt-3">
+                        {% if chef.facebook %}
+                            <a href="{{ chef.facebook }}" class="btn btn-sm btn-outline-primary rounded-circle" target="_blank">
+                                <i class="fab fa-facebook-f"></i>
+                            </a>
+                        {% endif %}
+                        {% if chef.instagram %}
+                            <a href="{{ chef.instagram }}" class="btn btn-sm btn-outline-danger rounded-circle" target="_blank">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "project2",
     "accounts",
     "restaurant",
     "orders",
@@ -82,16 +83,21 @@ MESSAGE_TAGS = {
     messages.ERROR: "danger",
 }
 
+# Cart session ID
+CART_SESSION_ID = "cart"
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
+                "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "restaurant.context_processors.cart",  # Thêm dòng này
             ],
         },
     },

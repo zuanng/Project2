@@ -66,18 +66,28 @@
                         <a class="nav-link" href="{% url 'restaurant:home' %}">Trang chủ</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Thực đơn</a>
+                        <a class="nav-link" href="{% url 'restaurant:menu_list' %}">Thực đơn</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Đặt bàn</a>
+                        <a class="nav-link" href="{% url 'reservations:reservation_create' %}">Đặt bàn</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Blog</a>
+                        <a class="nav-link" href="{% url 'restaurant:chefs_list' %}">Đầu bếp</a>
                     </li>
                 </ul>
                 
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link position-relative" href="{% url 'restaurant:cart_detail' %}">
+                                <i class="fas fa-shopping-cart"></i> Giỏ hàng
+                                {% if cart|length > 0 %}
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        {{ cart|length }}
+                                    </span>
+                                {% endif %}
+                            </a>
+                        </li>
                         {% if user.is_admin or user.is_superuser %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'dashboard:admin_dashboard' %}">
