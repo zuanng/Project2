@@ -1,4 +1,6 @@
 from django.core.management.base import BaseCommand
+import os
+from django.core.files import File
 from restaurant.models import Category, MenuItem, Chef
 from decimal import Decimal
 
@@ -33,6 +35,13 @@ class Command(BaseCommand):
 
         menu_items_data = [
             {
+                "name": "Đậu hũ chiên",
+                "category": appetizer,
+                "description": "Đậu hũ chiên giòn rụm, ăn kèm nước mắm chua ngọt",
+                "price": Decimal("49000"),
+                "is_featured": True,
+            },
+            {
                 "name": "Gỏi cuốn tôm thịt",
                 "category": appetizer,
                 "description": "Gỏi cuốn tươi ngon với tôm và thịt heo",
@@ -56,10 +65,29 @@ class Command(BaseCommand):
             },
         ]
 
+        base_dir = os.path.dirname(__file__)  # restaurant/management/commands
+        images_dir = os.path.join(base_dir, "sample_images", "menu")
+
         for item_data in menu_items_data:
-            MenuItem.objects.get_or_create(
-                name=item_data["name"], defaults=item_data
+            # chỉ cung cấp những trường có trong model làm defaults
+            defaults = {
+                "category": item_data.get("category"),
+                "description": item_data.get("description", ""),
+                "price": item_data.get("price", 0),
+            }
+            obj, created = MenuItem.objects.get_or_create(
+                name=item_data["name"], defaults=defaults
             )
+
+            # gán ảnh mẫu nếu là món Đậu hũ chiên và file tồn tại
+            if obj.name == "Đậu hũ chiên":
+                img_filename = "dauhu_chien.jpg"
+                img_path = os.path.join(images_dir, img_filename)
+                if os.path.exists(img_path):
+                    # chỉ gán nếu chưa có ảnh
+                    if not getattr(obj, "image", None):
+                        with open(img_path, "rb") as f:
+                            obj.image.save(img_filename, File(f), save=True)
 
         self.stdout.write(self.style.SUCCESS("Created menu items"))
 
